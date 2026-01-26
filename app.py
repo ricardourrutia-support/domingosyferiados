@@ -5,6 +5,7 @@ from typing import List, Set, Tuple
 
 import pandas as pd
 import streamlit as st
+from openpyxl.styles import Font  # <--- Importante para las negritas
 
 # ----------------------------
 # Config
@@ -203,6 +204,7 @@ def build_summary(
 
 
 def export_excel(dom_tbl, fest_tbl, total_tbl, periodo, holidays) -> bytes:
+    """Genera el Excel final con formato."""
     output = io.BytesIO()
     feriados_str = ", ".join(sorted([h.strftime("%d-%m-%Y") for h in holidays])) if holidays else "(ninguno)"
 
@@ -222,7 +224,9 @@ def export_excel(dom_tbl, fest_tbl, total_tbl, periodo, holidays) -> bytes:
             
             # Encabezado visual
             ws["A1"] = f"Reporte de Asistencias: {sheet_name}"
-            ws["A1"].font =  pd.io.excel.ExcelWriter.check_extension("file.xlsx") # dummy check, access openpyxl font obj via style if needed, but simpler to just write text
+            # Corrección del error: Usar objeto Font de openpyxl directamente
+            ws["A1"].font = Font(bold=True, size=12)
+            
             ws["A2"] = f"Periodo: {periodo}"
             ws["A3"] = "Criterio: Se cuentan todos los turnos excepto 'L' y celdas vacías."
             if sheet_name != "Domingos":
@@ -281,7 +285,6 @@ if uploaded:
         df = pd.read_excel(uploaded, sheet_name=sheet_name, engine=engine)
 
         # Definir columnas de metadatos (Colaborador)
-        # Nota: Ajusta esta lista si los nombres en el Excel cambian ligeramente
         meta_cols = ["Nombre del Colaborador", "RUT", "Área", "Supervisor"]
         
         # Validación básica de estructura
